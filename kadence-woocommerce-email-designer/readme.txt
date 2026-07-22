@@ -4,8 +4,8 @@ Tags: woocommerce, mail, email, email template, email templates
 Donate link: https://www.kadencewp.com/about-us/
 Requires PHP: 5.2.4
 Requires at least: 5.3
-Tested up to: 6.8
-Stable tag: 1.5.18
+Tested up to: 7.0.2
+Stable tag: 1.5.19
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ assist you with verification, CVE assignment, and notify the
 developers of this plugin.
 
 == Changelog ==
+
+= 1.5.19 =
+* Update: Sync bundled WooCommerce email templates with WooCommerce core template versions.
 
 = 1.5.18 =
 * Fix: Stricter escaping in previews.
