@@ -180,26 +180,51 @@ if ( ! class_exists( 'Kadence_Woomail_Customizer' ) ) {
 			remove_action( 'wp_footer', 'et_builder_get_modules_js_data' );
 			remove_action( 'et_customizer_footer_preview', 'et_load_social_icons' );
 		}
+		/**
+		 * Register the option overrides used while the preview refreshes.
+		 *
+		 * @since 1.5.19.1
+		 * @return void
+		 */
 		public function get_customizer_options_override_ready() {
+			if ( ! Kadence_Woomail_Designer::is_authorized_preview_request() ) {
+				return;
+			}
 			foreach ( Kadence_Woomail_Settings::get_email_types() as $key => $value ) {
 				add_filter( 'option_woocommerce_' . $key . '_settings', array( $this, 'customizer_woo_options_override' ), 99, 2 );
 			}
 		}
+		/**
+		 * Apply the unsaved customizer values to a WooCommerce email option.
+		 *
+		 * @since 1.5.19.1
+		 * @param array  $value  the stored option value.
+		 * @param string $option the option name.
+		 * @return array
+		 */
 		public function customizer_woo_options_override( $value = array(), $option = '' ) {
-			if ( isset( $_POST['customized'] ) ) {
-				$post_values = json_decode( stripslashes_deep( $_POST['customized'] ), true );
-				if ( isset( $_POST['customized'] ) && ! empty( $post_values ) ) {
-					if ( is_array( $post_values ) ) {
-						foreach ( $post_values as $key => $current_value ) {
-							if ( strpos( $key, $option ) !== false ) {
-								$subkey = str_replace( $option, '', $key );
-								$subkey = str_replace( '[', '', rtrim( $subkey, ']' ) );
-								$value[ $subkey ] = $current_value;
-							}
-						}
-					}
-				}
+			if ( ! isset( $_POST['customized'] ) || ! Kadence_Woomail_Designer::is_authorized_preview_request() ) {
+				return $value;
 			}
+
+			$post_values = json_decode( stripslashes_deep( $_POST['customized'] ), true );
+
+			if ( empty( $post_values ) || ! is_array( $post_values ) ) {
+				return $value;
+			}
+
+			// Only settings registered by the email designer may be previewed.
+			$registered = Kadence_Woomail_Settings::get_woo_settings();
+			$prefix     = $option . '[';
+
+			foreach ( $post_values as $key => $current_value ) {
+				if ( ! isset( $registered[ $key ] ) || 0 !== strpos( $key, $prefix ) ) {
+					continue;
+				}
+				$subkey = rtrim( substr( $key, strlen( $prefix ) ), ']' );
+				$value[ $subkey ] = $current_value;
+			}
+
 			return $value;
 		}
 
